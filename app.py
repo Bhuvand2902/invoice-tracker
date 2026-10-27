@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 import sqlite3
@@ -8,10 +9,19 @@ app = Flask(__name__)
 DATABASE = Path(__file__).with_name("invoices.db")
 
 
+@contextmanager
 def get_connection():
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
-    return connection
+
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 def create_table():
