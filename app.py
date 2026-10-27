@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from datetime import date
+from datetime import date, datetime
+import math
 from pathlib import Path
 import sqlite3
 
@@ -36,7 +37,6 @@ def create_table():
             )
         """)
 
-        # Add this column to the database you already created, if needed.
         columns = connection.execute(
             "PRAGMA table_info(invoices)"
         ).fetchall()
@@ -52,21 +52,40 @@ def create_table():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
+    errors = []
+
     if request.method == "POST":
-        customer = request.form["customer"].strip()
-        amount = request.form["amount"]
-        due_date = request.form["due_date"]
+        customer = request.form.get("customer", "").strip()
+        amount_text = request.form.get("amount", "").strip()
+        due_date = request.form.get("due_date", "").strip()
 
-        with get_connection() as connection:
-            connection.execute(
-                """
-                INSERT INTO invoices (customer, amount, due_date)
-                VALUES (?, ?, ?)
-                """,
-                (customer, amount, due_date)
-            )
+        if not customer:
+            errors.append("Enter a customer name.")
 
-        return redirect(url_for("home"))
+        try:
+            amount = float(amount_text)
+            if not math.isfinite(amount) or amount <= 0:
+                errors.append("Amount must be a valid number greater than zero.")
+        except ValueError:
+            amount = 0
+            errors.append("Enter a valid amount.")
+
+        try:
+            datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            errors.append("Enter a valid due date.")
+
+        if not errors:
+            with get_connection() as connection:
+                connection.execute(
+                    """
+                    INSERT INTO invoices (customer, amount, due_date)
+                    VALUES (?, ?, ?)
+                    """,
+                    (customer, amount, due_date)
+                )
+
+            return redirect(url_for("home"))
 
     with get_connection() as connection:
         invoices = connection.execute(
@@ -99,7 +118,8 @@ def home():
         today=today,
         paid_total=paid_total,
         unpaid_total=unpaid_total,
-        overdue_total=overdue_total
+        overdue_total=overdue_total,
+        errors=errors
     )
 
 

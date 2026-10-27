@@ -10,6 +10,14 @@
 
     <h2>Add an invoice</h2>
 
+    {% if errors %}
+        <ul style="color: red;">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <form method="post">
         <label for="customer">Customer name:</label>
         <input id="customer" type="text" name="customer" required>
@@ -17,7 +25,7 @@
         <br><br>
 
         <label for="amount">Amount:</label>
-        <input id="amount" type="number" name="amount" step="0.01" min="0" required>
+        <input id="amount" type="number" name="amount" step="0.01" min="0.01" required>
 
         <br><br>
 
@@ -51,7 +59,6 @@
                 <td>{{ invoice["customer"] }}</td>
                 <td>{{ invoice["amount"] }}</td>
                 <td>{{ invoice["due_date"] }}</td>
-
                 <td>
                     {% if invoice["is_paid"] %}
                         Paid
@@ -61,7 +68,6 @@
                         Unpaid
                     {% endif %}
                 </td>
-
                 <td>
                     {% if not invoice["is_paid"] %}
                         <form method="post"

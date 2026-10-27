@@ -12,7 +12,6 @@ class InvoiceTrackerTests(unittest.TestCase):
 
         invoice_app.DATABASE = Path(self.temp_dir.name) / "test_invoices.db"
         invoice_app.create_table()
-
         self.client = invoice_app.app.test_client()
 
     def tearDown(self):
@@ -57,6 +56,24 @@ class InvoiceTrackerTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Paid total: 100.00", response.data)
+
+    def test_invalid_invoice_is_rejected(self):
+        response = self.client.post(
+            "/",
+            data={
+                "customer": "",
+                "amount": "-10",
+                "due_date": "not-a-date",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Enter a customer name.", response.data)
+        self.assertIn(
+            b"Amount must be a valid number greater than zero.",
+            response.data,
+        )
+        self.assertIn(b"Enter a valid due date.", response.data)
 
 
 if __name__ == "__main__":
