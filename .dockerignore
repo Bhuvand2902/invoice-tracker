@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.git/
+.env
+invoices.db
+test_app.py
