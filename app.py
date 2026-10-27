@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 import sqlite3
 
@@ -25,7 +26,7 @@ def create_table():
             )
         """)
 
-        # Add this column to the database you already created.
+        # Add this column to the database you already created, if needed.
         columns = connection.execute(
             "PRAGMA table_info(invoices)"
         ).fetchall()
@@ -62,7 +63,34 @@ def home():
             "SELECT * FROM invoices ORDER BY id DESC"
         ).fetchall()
 
-    return render_template("index.html", invoices=invoices)
+    today = date.today().isoformat()
+
+    paid_total = sum(
+        float(invoice["amount"])
+        for invoice in invoices
+        if invoice["is_paid"]
+    )
+
+    unpaid_total = sum(
+        float(invoice["amount"])
+        for invoice in invoices
+        if not invoice["is_paid"] and invoice["due_date"] >= today
+    )
+
+    overdue_total = sum(
+        float(invoice["amount"])
+        for invoice in invoices
+        if not invoice["is_paid"] and invoice["due_date"] < today
+    )
+
+    return render_template(
+        "index.html",
+        invoices=invoices,
+        today=today,
+        paid_total=paid_total,
+        unpaid_total=unpaid_total,
+        overdue_total=overdue_total
+    )
 
 
 @app.route("/mark-paid/<int:invoice_id>", methods=["POST"])

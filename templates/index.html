@@ -29,6 +29,11 @@
         <button type="submit">Add invoice</button>
     </form>
 
+    <h2>Summary</h2>
+    <p>Paid total: {{ "%.2f"|format(paid_total) }}</p>
+    <p>Unpaid total: {{ "%.2f"|format(unpaid_total) }}</p>
+    <p>Overdue total: {{ "%.2f"|format(overdue_total) }}</p>
+
     <h2>Invoices</h2>
 
     {% if invoices %}
@@ -50,6 +55,8 @@
                 <td>
                     {% if invoice["is_paid"] %}
                         Paid
+                    {% elif invoice["due_date"] < today %}
+                        Overdue
                     {% else %}
                         Unpaid
                     {% endif %}
