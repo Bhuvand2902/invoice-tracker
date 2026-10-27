@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Tracker</title>
+</head>
+<body>
+    <h1>Invoice Tracker</h1>
+    <p>Track customers, invoices, and due dates.</p>
+
+    <h2>Add an invoice</h2>
+
+    <form method="post">
+        <label for="customer">Customer name:</label>
+        <input id="customer" type="text" name="customer" required>
+
+        <br><br>
+
+        <label for="amount">Amount:</label>
+        <input id="amount" type="number" name="amount" step="0.01" min="0" required>
+
+        <br><br>
+
+        <label for="due_date">Due date:</label>
+        <input id="due_date" type="date" name="due_date" required>
+
+        <br><br>
+
+        <button type="submit">Add invoice</button>
+    </form>
+
+    <h2>Invoices</h2>
+
+    {% if invoices %}
+        <table border="1" cellpadding="8">
+            <tr>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Due date</th>
+            </tr>
+
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice["customer"] }}</td>
+                <td>{{ invoice["amount"] }}</td>
+                <td>{{ invoice["due_date"] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No invoices yet. Add one using the form above.</p>
+    {% endif %}
+</body>
+</html>
