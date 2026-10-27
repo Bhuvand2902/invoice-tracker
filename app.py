@@ -20,9 +20,23 @@ def create_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 customer TEXT NOT NULL,
                 amount REAL NOT NULL,
-                due_date TEXT NOT NULL
+                due_date TEXT NOT NULL,
+                is_paid INTEGER NOT NULL DEFAULT 0
             )
         """)
+
+        # Add this column to the database you already created.
+        columns = connection.execute(
+            "PRAGMA table_info(invoices)"
+        ).fetchall()
+
+        column_names = [column["name"] for column in columns]
+
+        if "is_paid" not in column_names:
+            connection.execute("""
+                ALTER TABLE invoices
+                ADD COLUMN is_paid INTEGER NOT NULL DEFAULT 0
+            """)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -34,7 +48,10 @@ def home():
 
         with get_connection() as connection:
             connection.execute(
-                "INSERT INTO invoices (customer, amount, due_date) VALUES (?, ?, ?)",
+                """
+                INSERT INTO invoices (customer, amount, due_date)
+                VALUES (?, ?, ?)
+                """,
                 (customer, amount, due_date)
             )
 
@@ -46,6 +63,17 @@ def home():
         ).fetchall()
 
     return render_template("index.html", invoices=invoices)
+
+
+@app.route("/mark-paid/<int:invoice_id>", methods=["POST"])
+def mark_paid(invoice_id):
+    with get_connection() as connection:
+        connection.execute(
+            "UPDATE invoices SET is_paid = 1 WHERE id = ?",
+            (invoice_id,)
+        )
+
+    return redirect(url_for("home"))
 
 
 if __name__ == "__main__":

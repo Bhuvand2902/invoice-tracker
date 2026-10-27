@@ -37,6 +37,8 @@
                 <th>Customer</th>
                 <th>Amount</th>
                 <th>Due date</th>
+                <th>Status</th>
+                <th>Action</th>
             </tr>
 
             {% for invoice in invoices %}
@@ -44,6 +46,23 @@
                 <td>{{ invoice["customer"] }}</td>
                 <td>{{ invoice["amount"] }}</td>
                 <td>{{ invoice["due_date"] }}</td>
+
+                <td>
+                    {% if invoice["is_paid"] %}
+                        Paid
+                    {% else %}
+                        Unpaid
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if not invoice["is_paid"] %}
+                        <form method="post"
+                              action="{{ url_for('mark_paid', invoice_id=invoice['id']) }}">
+                            <button type="submit">Mark paid</button>
+                        </form>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </table>
